@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client';
-import {Button} from 'semantic-ui-react';
+import {Button, Progress} from 'semantic-ui-react';
 import getUserMedia from 'getusermedia';
-
+import './Call.css';
 
 let audioStream;
 let audioContext;
@@ -11,7 +11,7 @@ class Call extends Component {
   constructor() {
     super();
     this.state = {
-
+      status: 'Calling...',
     }
   }
   componentDidMount() {
@@ -29,9 +29,15 @@ class Call extends Component {
   render() {
     return (
       <div className="Call">
-        <div className="Content">
-          <h1>Call</h1>
-          <Button>End Call</Button>
+        <div className="content">
+          <div className="contentContainer">
+            <div className="progressContainer">
+              <Progress value={3} total={5} active color="green" inverted progress="ratio">
+                { this.state.status }
+              </Progress>
+            </div>
+            <Button inverted color="red">End Call</Button>
+          </div>
         </div>
         <audio ref="audio" autoPlay></audio>
       </div>
@@ -41,6 +47,7 @@ class Call extends Component {
 
 function call(addr, audio) {
   console.log("Calling "+addr);
+
   startAudioStream(audio);
 }
 
