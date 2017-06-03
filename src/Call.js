@@ -77,9 +77,10 @@ function startAudioStream(audio) {
       const source = audioContext.createMediaStreamSource(audioStream);
       const analyser = audioContext.createScriptProcessor(1024,1,1);
 
+      source.connect(analyser);
+
       analyser.onaudioprocess = (audio) => {
-        socket.emit('audioBuffer', audio.outputBuffer);
-        console.log("Emitting");
+        socket.emit('audioBuffer', audio.inputBuffer.getChannelData(0));
       };
 
       analyser.connect(audioContext.destination);
