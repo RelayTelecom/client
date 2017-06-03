@@ -12,19 +12,15 @@ class Call extends Component {
     super();
     this.state = {
       status: 'Calling...',
+      progress: 1,
+      color: 'green',
     }
   }
   componentDidMount() {
     call(this.props.match.params.address, this.refs.audio);
   }
   componentWillUnmount() {
-    console.log("Ending call");
-    if (audioStream) {
-      audioStream.getTracks()[0].stop();
-    }
-    if (audioContext) {
-      audioContext.close();
-    }
+    endCall.bind(this)();
   }
   render() {
     return (
@@ -32,17 +28,33 @@ class Call extends Component {
         <div className="content">
           <div className="contentContainer">
             <div className="progressContainer">
-              <Progress value={3} total={5} active color="green" inverted progress="ratio">
+              <Progress value={this.state.progress} total={5} active={this.state.progress < 5} color={this.state.color} inverted progress="ratio">
                 { this.state.status }
               </Progress>
             </div>
-            <Button inverted color="red">End Call</Button>
+            <Button inverted color="red" onClick={endCall.bind(this)}>End Call</Button>
           </div>
         </div>
         <audio ref="audio" autoPlay></audio>
       </div>
     );
   }
+}
+
+function endCall() {
+  console.log("Ending call");
+  if (audioStream) {
+    audioStream.getTracks()[0].stop();
+  }
+  if (audioContext) {
+    audioContext.close();
+  }
+
+  this.setState({
+    progress: 5,
+    status: 'Call Ended',
+    color: 'red',
+  })
 }
 
 function call(addr, audio) {
