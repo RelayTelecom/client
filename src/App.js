@@ -1,9 +1,13 @@
 import React, { Component } from 'react';
+import io from 'socket.io-client';
+import {Input, Button} from 'semantic-ui-react';
 import getUserMedia from 'getusermedia';
 import './App.css';
 
 class App extends Component {
   componentDidMount() {
+    //const socket = io("http://localhost:8642");
+
     getUserMedia({audio: true}, (err, stream) => {
       if (err) {
         console.log(err);
@@ -14,8 +18,8 @@ class App extends Component {
         const source = context.createMediaStreamSource(stream);
         const analyser = context.createScriptProcessor(1024,1,1);
 
-        analyser.onaudioprocess = (a) => {
-          console.log(a);
+        analyser.onaudioprocess = (audio) => {
+          //socket.emit('audioBuffer', audio.outputBuffer);
         };
 
         analyser.connect(context.destination);
@@ -30,8 +34,14 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <div>
-          Hello
+        <div className="content">
+          <div className = "logoContainer">
+            <h1>Relay</h1>
+          </div>
+          <div className="callContainer">
+            <Input size="huge" placeholder="Address"></Input>
+            <Button inverted size="huge" color="green" >Call</Button>
+          </div>
         </div>
         <audio ref="audio" autoPlay></audio>
       </div>

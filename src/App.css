@@ -2,23 +2,26 @@
   text-align: center;
 }
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+.App .content {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+
+  transform: translate(-50%, -40%);
 }
 
-.App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
+.callContainer {
+  display: inline-flex;
+}
+
+.logoContainer h1 {
+  font-family: 'Orbitron', sans-serif;
+
+  font-size: 4rem;
+  padding-bottom: 1.2rem;
   color: white;
 }
 
-.App-intro {
-  font-size: large;
-}
-
-@keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.callContainer .ui.input {
+  margin-right: .5rem;
 }
