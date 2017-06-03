@@ -87,7 +87,7 @@ function startAudioStream(audio) {
       analyser.connect(audioContext.destination);
 
       console.log(analyser);
-//      audio.src = window.URL.createObjectURL(source.mediaStream);
+      audio.src = window.URL.createObjectURL(source.mediaStream);
       console.log(stream);
     }
   });
