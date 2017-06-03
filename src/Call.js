@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import io from 'socket.io-client';
+import ss from 'socket.io-stream';
 import {Button, Progress} from 'semantic-ui-react';
 import getUserMedia from 'getusermedia';
 import './Call.css';
@@ -80,13 +81,13 @@ function startAudioStream(audio) {
       source.connect(analyser);
 
       analyser.onaudioprocess = (audio) => {
-        socket.emit('audioBuffer', audio.inputBuffer.getChannelData(0));
+    	  ss(socket).emit('audioBuffer', audio.inputBuffer.getChannelData(0));
       };
 
       analyser.connect(audioContext.destination);
 
       console.log(analyser);
-      audio.src = window.URL.createObjectURL(source.mediaStream);
+//      audio.src = window.URL.createObjectURL(source.mediaStream);
       console.log(stream);
     }
   });
