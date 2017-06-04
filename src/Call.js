@@ -9,8 +9,6 @@ import './Call.css';
 let audioStream;
 let audioContext;
 
-let identity;
-
 class Call extends Component {
   constructor() {
     super();
@@ -74,8 +72,6 @@ function endCall() {
 
 
 function call(web3, addr, identity, audio) {
-  console.log("Calling "+addr);
-
   Wispa.makeCall(web3, addr, identity, (reply) => {
     console.log(reply);
   });

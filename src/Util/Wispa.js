@@ -4,8 +4,9 @@ import ethUtils from 'ethereumjs-util';
 class Wispa {
   static listenForCalls(web3, identity, cb) {
     const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
-
+console.log("hello1?");
     callFilter.watch((err, res) => {
+      console.log("hello?");
       if (err) {
         console.log(err);
       } else {
@@ -62,7 +63,7 @@ class Wispa {
       from: identity,
       topics: ['relaytelecom-call'],
       payload: JSON.stringify(payload),
-      ttl: 30,
+      ttl: 300,
     }, () => console.log("Calling " + address + "..."));
 
     const replyFilter = web3.shh.filter({topics: ['relaytelecom-reply'], to: identity});
