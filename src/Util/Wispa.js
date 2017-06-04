@@ -8,7 +8,7 @@ import io from 'socket.io-client';
 */
 class Wispa {
   static listenForCalls(web3, identity, cb) {
-    const socket = io("http://localhost:8641");
+    const socket = io("https://relay-whispersocket.herokuapp.com");
 
     //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
     //callFilter.watch((err, call) => {
@@ -87,7 +87,7 @@ class Wispa {
       self: web3.eth.defaultAccount,
     };
 
-    const socket = io("https://relay-whispersocket.herokuapp.com:8641");
+    const socket = io("https://relay-whispersocket.herokuapp.com");
 
     // web3.shh.post({
     //   from: identity,
