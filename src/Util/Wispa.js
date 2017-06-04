@@ -16,12 +16,15 @@ class Wispa {
 
       //const payload = JSON.parse(web3.toAscii(res.payload));
       const payload = call;
+      console.log("Got call from " + call.self + " for " + call.address);
 
-      if (payload.address in web3.eth.accounts && payload.challenge.length === 10) {
+      if (call.address.toLowerCase() === web3.eth.defaultAccount.toLowerCase() && call.challenge.length === 10) {
         // They are looking for me!
         // And they aren't trying to make me do horrible things!
         // Sign their challenge
-        web3.eth.sign(web3.eth.defaultAccount, web3.sha3(payload.challenge), (err, signature) => {
+
+        console.log("Signing challenge");
+        web3.eth.sign(web3.eth.defaultAccount, web3.sha3(call.challenge), (err, signature) => {
           if (err) {
             console.log(err);
           } else {
@@ -61,8 +64,8 @@ class Wispa {
                 signature.s);
 
               const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
-              if (foundAddr === call.address) {
-                cb(foundAddr, affirm.key, affirm.relayAddr);
+              if (foundAddr.toLowerCase() === call.address.toLowerCase()) {
+                cb(foundAddr.toLowerCase(), affirm.key, affirm.relayAddr);
               } else {
                 console.log("Cheater detected? ");
                 console.log(affirm);
@@ -111,7 +114,7 @@ class Wispa {
       const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
 
       // verify that they are who I wanted and that their signature is correct
-      if (foundAddr === address) {
+      if (foundAddr.toLowerCase() === address.toLowerCase()) {
         // Yay! The right dude replied! Now I have to affirm that I'm me.
         web3.eth.sign(web3.eth.defaultAccount, web3.sha3(reply.challenge), (err, mySignature) => {
           if (err) {
@@ -133,7 +136,7 @@ class Wispa {
             // TODO: Encrypt
             socket.emit('relaytelecom-affirm', JSON.stringify(affirm));
 
-            cb(foundAddr, affirm.key, affirm.relayAddr);
+            cb(foundAddr.toLowerCase(), affirm.key, affirm.relayAddr);
           }
         });
       }
