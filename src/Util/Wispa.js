@@ -15,7 +15,6 @@ class Wispa {
     socket.on('relaytelecom-call', (call) => {
 
       //const payload = JSON.parse(web3.toAscii(res.payload));
-      const payload = call;
       console.log("Got call from " + call.self + " for " + call.address);
 
       if (call.address.toLowerCase() === web3.eth.defaultAccount.toLowerCase() && call.challenge.length === 10) {
@@ -65,7 +64,7 @@ class Wispa {
 
               const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
               if (foundAddr.toLowerCase() === call.address.toLowerCase()) {
-                cb(foundAddr.toLowerCase(), affirm.key, affirm.relayAddr);
+                cb(foundAddr.toLowerCase(), affirm.relayAddr, myChallenge, affirm.key);
               } else {
                 console.log("Cheater detected? ");
                 console.log(affirm);
@@ -78,7 +77,7 @@ class Wispa {
     console.log("Listening to calls for " + web3.eth.accounts);
   }
 
-  static makeCall(web3, address, identity, cb) {
+  static makeCall(web3, address, progress, cb) {
     const challenge = makeChallenge(10);
 
     const call = {
@@ -88,7 +87,7 @@ class Wispa {
       self: web3.eth.defaultAccount,
     };
 
-    const socket = io("http://localhost:8641");
+    const socket = io("https://relay-whispersocket.herokuapp.com:8641");
 
     // web3.shh.post({
     //   from: identity,
@@ -97,10 +96,12 @@ class Wispa {
     //   ttl: 300,
     // }, () => console.log("Calling " + address + "..."));
     socket.emit('relaytelecom-call', call);
-
+    progress(2);
     // const replyFilter = web3.shh.filter({topics: ['relaytelecom-reply'], to: identity});
     // replyFilter.watch((err, reply) => {
     socket.on('relaytelecom-reply', (encryptedReply) => {
+      progress(3);
+
       // TODO decrypt
       const reply = JSON.parse(encryptedReply);
       const signature = ethUtils.fromRpcSig(reply.signature);
@@ -135,8 +136,9 @@ class Wispa {
             // }, () => console.log("Confirmed that " + address + " is real. Affirmed with " + JSON.stringify(affirmPayload)));
             // TODO: Encrypt
             socket.emit('relaytelecom-affirm', JSON.stringify(affirm));
+            progress(4);
 
-            cb(foundAddr.toLowerCase(), affirm.key, affirm.relayAddr);
+            cb(foundAddr.toLowerCase(), affirm.relayAddr, reply.challenge, affirm.key);
           }
         });
       }

@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
 import Home from './Home';
-import Call from './Call';
+import Talk from './Talk';
+import Dial from './Dial';
 import NotFound from './NotFound';
 
 class App extends Component {
@@ -11,9 +12,8 @@ class App extends Component {
       <BrowserRouter>
         <Switch>
           <Route exact path="/" component={Home} />
-          <Route path="/call/:address/" component={Call} />
-          <Route path="/call/:address/:encryptionKey" component={Call} />
-          <Route path="/call/:address/:encryptionKey/:relay" component={Call} />
+          <Route path="/dial/:address/" component={Dial} />
+          <Route path="/talk/:address/:relay/:room/:encryptionKey" component={Talk} />
 
           <Route path="*" component={NotFound} />
         </Switch>

@@ -22,8 +22,8 @@ class Home extends Component {
         if (err) {
           console.log(err);
         } else {
-          Wispa.listenForCalls(window.web3, identity, () => {
-            console.log("Something happened..");
+          Wispa.listenForCalls(window.web3, identity, (caller, relayAddr, room, key) => {
+            this.context.router.transitionTo('/talk/' + caller + '/' + relayAddr + '/' + room + '/' + key);
           });
         }
       });
@@ -38,7 +38,7 @@ class Home extends Component {
           </div>
           <div className="callContainer">
             <Input size="huge" placeholder="Address" onChange={this.handleChange.bind(this, 'address')}></Input>
-            <Button as={Link} to={'/call/'+this.state.address} inverted size="huge" color="green" >Call</Button>
+            <Button as={Link} to={'/dial/'+this.state.address} inverted size="huge" color="green" >Call</Button>
           </div>
         </div>
         <audio ref="audio" autoPlay></audio>
