@@ -24,7 +24,7 @@ Launch a relay (see https://github.com/RelayTelecom/relay)
 On another computer / node / status app call the other address (not quite there yet)
 
 
-#Checklist
+# Checklist
 
 - [x] Basic interface
 - [x] Relay read-from-client buffer
