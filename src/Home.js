@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {Link} from 'react-router-dom';
+import Wispa from './Util/Wispa.js';
 
 import {Input, Button} from 'semantic-ui-react';
 import './Home.css';
@@ -12,6 +13,21 @@ class Home extends Component {
     }
   }
   componentDidMount() {
+    if (typeof window.web3 === 'undefined' || typeof window.web3.currentProvider === 'undefined') {
+      // there is no web3 impl, we should add one. Maybe.
+
+    } else {
+      // but for the hackathon we'll assume there is one :)
+      window.web3.shh.newIdentity((err, identity) => {
+        if (err) {
+          console.log(err);
+        } else {
+          Wispa.listenForCalls(window.web3, identity, () => {
+            console.log("Something happened..");
+          });
+        }
+      });
+    }
   }
   render() {
     return (

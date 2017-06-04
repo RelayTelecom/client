@@ -3,14 +3,18 @@ import io from 'socket.io-client';
 import ss from 'socket.io-stream';
 import {Button, Progress} from 'semantic-ui-react';
 import getUserMedia from 'getusermedia';
+import Wispa from './Util/Wispa';
 import './Call.css';
 
 let audioStream;
 let audioContext;
 
+let identity;
+
 class Call extends Component {
   constructor() {
     super();
+
     this.state = {
       status: 'Calling...',
       progress: 1,
@@ -18,7 +22,17 @@ class Call extends Component {
     }
   }
   componentDidMount() {
-    call(this.props.match.params.address, this.refs.audio);
+    if (typeof window.web3 === 'undefined' || typeof window.web3.currentProvider === 'undefined') {
+      // there is no web3 impl, we should add one. Maybe.
+
+    } else {
+      // but for the hackathon we'll assume there is one :)
+
+      window.web3.shh.newIdentity((err, identity) => {
+        call(window.web3, this.props.match.params.address, identity, this.refs.audio);
+
+      });
+    }
   }
   componentWillUnmount() {
     endCall.bind(this)();
@@ -29,7 +43,7 @@ class Call extends Component {
         <div className="content">
           <div className="contentContainer">
             <div className="progressContainer">
-              <Progress value={this.state.progress} total={5} active={this.state.progress < 5} color={this.state.color} inverted progress="ratio">
+              <Progress value={this.state.progress} total={5} active={this.state.progress < 5} color={this.state.color} inverted>
                 { this.state.status }
               </Progress>
             </div>
@@ -58,10 +72,15 @@ function endCall() {
   })
 }
 
-function call(addr, audio) {
+
+function call(web3, addr, identity, audio) {
   console.log("Calling "+addr);
 
-  startAudioStream(audio);
+  Wispa.makeCall(web3, addr, identity, (reply) => {
+    console.log(reply);
+  });
+
+  // startAudioStream(audio);
 }
 
 function startAudioStream(audio) {
@@ -92,5 +111,6 @@ function startAudioStream(audio) {
     }
   });
 }
+
 
 export default Call;
