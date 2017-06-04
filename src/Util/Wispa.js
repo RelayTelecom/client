@@ -1,76 +1,106 @@
 import ethUtils from 'ethereumjs-util';
+import io from 'socket.io-client';
 
-
+/*
+* This class is a wrapper for what would normally be whisper operations. Because whisper is extremely unreliable in its current state,
+* and the api for it is in flux, we decided to implement a simple websocket version for this hackathon. In the future when web3.shh
+* is more production-ready, we can replace the operations in this class with true whisper code.
+*/
 class Wispa {
   static listenForCalls(web3, identity, cb) {
-    const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
-console.log("hello1?");
-    callFilter.watch((err, res) => {
-      console.log("hello?");
-      if (err) {
-        console.log(err);
-      } else {
-        const payload = JSON.parse(web3.toAscii(res.payload));
-        console.log(payload);
+    const socket = io("http://localhost:8641");
 
-        if (payload.address in web3.eth.accounts) {
-          // They are looking for me!
-          if (payload.challenge.length === 10) {
-            // And they aren't trying to make me do horrible things!
-            // Sign their challenge
-            web3.eth.sign(web3.eth.defaultAccount, web3.sha3(payload.challenge), (err, signature) => {
-              if (err) {
-                console.log(err);
+    //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
+    //callFilter.watch((err, call) => {
+    socket.on('relaytelecom-call', (call) => {
+
+      //const payload = JSON.parse(web3.toAscii(res.payload));
+      const payload = call;
+
+      if (payload.address in web3.eth.accounts && payload.challenge.length === 10) {
+        // They are looking for me!
+        // And they aren't trying to make me do horrible things!
+        // Sign their challenge
+        web3.eth.sign(web3.eth.defaultAccount, web3.sha3(payload.challenge), (err, signature) => {
+          if (err) {
+            console.log(err);
+          } else {
+            const myChallenge = makeChallenge(10);
+            const replyPayload = {
+              signature,
+              challenge: myChallenge,
+            };
+
+            // web3.shh.post({
+            //   from: identity,
+            //   to: res.from,
+            //   topics: ['relaytelecom-reply'],
+            //   payload: JSON.stringify(replyPayload),
+            //   ttl: 30,
+            // }, () => console.log("Someone Called me... Signed " + payload.challenge));
+
+            // TODO: ENCRYPT
+            const msg = JSON.stringify(replyPayload);
+            socket.emit('relaytelecom-reply', msg);
+
+            //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
+            //callFilter.watch((err, call) => {
+            socket.on('relaytelecom-affirm', (affirmation) => {
+              // TODO: Decrypt
+              const affirm = JSON.parse(affirmation);
+
+              // if (decrypt successful) {
+              socket.removeAllListeners('relaytelecom-affirm');
+              // }
+
+              const signature = ethUtils.fromRpcSig(affirm.signature);
+              const pubKey = ethUtils.ecrecover(
+                ethUtils.toBuffer(web3.sha3(myChallenge)),
+                signature.v,
+                signature.r,
+                signature.s);
+
+              const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
+              if (foundAddr === call.address) {
+                cb(foundAddr, affirm.key, affirm.relayAddr);
               } else {
-                const myChallenge = makeChallenge(10);
-                const replyPayload = {
-                  signature,
-                  challenge: myChallenge,
-                };
-
-                // send my reply out
-                web3.shh.post({
-                  from: identity,
-                  to: res.from,
-                  topics: ['relaytelecom-reply'],
-                  payload: JSON.stringify(replyPayload),
-                  ttl: 30,
-                }, () => console.log("Someone Called me... Signed " + payload.challenge));
-
-
-                // Wait for his affirmation
-                // filter shit
-                // get his symmetric key that he sends me, and connect to his relay that he sends me
+                console.log("Cheater detected? ");
+                console.log(affirm);
               }
             });
           }
-        }
+        });
       }
     });
     console.log("Listening to calls for " + web3.eth.accounts);
   }
 
-  static makeCall(web3, address, identity, answer) {
+  static makeCall(web3, address, identity, cb) {
     const challenge = makeChallenge(10);
 
-    const payload = {
+    const call = {
       address,
       challenge,
+      pubkey: '1234', // TODO actually make a keypair..
+      self: web3.eth.defaultAccount,
     };
 
-    // send my payload out
-    web3.shh.post({
-      from: identity,
-      topics: ['relaytelecom-call'],
-      payload: JSON.stringify(payload),
-      ttl: 300,
-    }, () => console.log("Calling " + address + "..."));
+    const socket = io("http://localhost:8641");
 
-    const replyFilter = web3.shh.filter({topics: ['relaytelecom-reply'], to: identity});
-    replyFilter.watch((err, reply) => {
-      // verify that they are who I wanted and that their signature is correct
-      const parsedPayload = JSON.parse(web3.toAscii(payload));
-      const signature = ethUtils.fromRpcSig(parsedPayload.signature);
+    // web3.shh.post({
+    //   from: identity,
+    //   topics: ['relaytelecom-call'],
+    //   payload: JSON.stringify(call),
+    //   ttl: 300,
+    // }, () => console.log("Calling " + address + "..."));
+    socket.emit('relaytelecom-call', call);
+
+    // const replyFilter = web3.shh.filter({topics: ['relaytelecom-reply'], to: identity});
+    // replyFilter.watch((err, reply) => {
+    socket.on('relaytelecom-reply', (encryptedReply) => {
+      // TODO decrypt
+      const reply = JSON.parse(encryptedReply);
+      const signature = ethUtils.fromRpcSig(reply.signature);
 
       const pubKey = ethUtils.ecrecover(
         ethUtils.toBuffer(web3.sha3(challenge)),
@@ -80,35 +110,34 @@ console.log("hello1?");
 
       const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
 
+      // verify that they are who I wanted and that their signature is correct
       if (foundAddr === address) {
         // Yay! The right dude replied! Now I have to affirm that I'm me.
-        web3.eth.sign(web3.eth.defaultAccount, web3.sha3(parsedPayload.challenge), (err, mySignature) => {
+        web3.eth.sign(web3.eth.defaultAccount, web3.sha3(reply.challenge), (err, mySignature) => {
           if (err) {
             console.log(err);
           } else {
-            const affirmPayload = {
+            const affirm = {
               signature: mySignature,
               key: '1234symmetricKey1234',
               relay: '123.456.7.8',
             }
 
-            // send my affirmation out
-            web3.shh.post({
-              from: identity,
-              to: reply.from,
-              topics: ['relaytelecom-affirm'],
-              payload: JSON.stringify(affirmPayload),
-              ttl: 30,
-            }, () => console.log("Confirmed that " + address + " is real. Affirmed with " + JSON.stringify(affirmPayload)));
+            // web3.shh.post({
+            //   from: identity,
+            //   to: reply.from,
+            //   topics: ['relaytelecom-affirm'],
+            //   payload: JSON.stringify(affirmPayload),
+            //   ttl: 30,
+            // }, () => console.log("Confirmed that " + address + " is real. Affirmed with " + JSON.stringify(affirmPayload)));
+            // TODO: Encrypt
+            socket.emit('relaytelecom-affirm', JSON.stringify(affirm));
 
+            cb(foundAddr, affirm.key, affirm.relayAddr);
           }
         });
       }
-
-
-      console.log(reply.payload);
     });
-
   }
 }
 

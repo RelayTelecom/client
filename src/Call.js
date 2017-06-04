@@ -23,14 +23,25 @@ class Call extends Component {
     if (typeof window.web3 === 'undefined' || typeof window.web3.currentProvider === 'undefined') {
       // there is no web3 impl, we should add one. Maybe.
 
+      // But let's just wait a sec in case metamask is slow.
+      setTimeout(() => {
+        if (typeof window.web3 === 'undefined') {
+          // If still undefined..
+          this.setState({
+            color: 'red',
+            status: 'No Web3 detected. Please download at metamask.io',
+          });
+        }
+        window.web3.shh.newIdentity((err, identity) => {
+          call(window.web3, this.props.match.params.address, identity, this.refs.audio);
+        });
+      }, 1000);
     } else {
-      // but for the hackathon we'll assume there is one :)
-
       window.web3.shh.newIdentity((err, identity) => {
         call(window.web3, this.props.match.params.address, identity, this.refs.audio);
-
       });
     }
+
   }
   componentWillUnmount() {
     endCall.bind(this)();
