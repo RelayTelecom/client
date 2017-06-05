@@ -69,20 +69,70 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
       audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(audioStream);
       const analyser = audioContext.createScriptProcessor(1024,1,1);
+      
+      const speakerAnalyzer = audioContext.createScriptProcessor(1024,1,1);
+      const bufferSource = audioContext.createBufferSource();
 
       source.connect(analyser);
-
+      
       analyser.onaudioprocess = (audio) => {
-    	  ss(socket).emit('audioBuffer', audio.inputBuffer.getChannelData(0));
+    	  var arrayBuffer = encryptAudio(audio);
+    	  socket.emit('audioBuffer', arrayBuffer);
       };
+      
+      bufferSource.connect(speakerAnalyzer);
+      
+      speakerAnalyzer.onaudioprocess = (audio) => {
+    	  decryptAudio(audio);
+      };
+      
+      socket.on('communicate', function(data){
+    	  var viewBuffer = new Float32Array(data);
+    	  console.log(data);
+//    	  audioContext.decodeAudioData(data, function(buffer) {
+//    		  bufferSource.buffer = buffer;
+//    		  bufferSource.connect(audioContext.destination);
+//    		  bufferSource.loop = true;
+//	      });
+      });
 
       analyser.connect(audioContext.destination);
 
       console.log(analyser);
-      audio.src = window.URL.createObjectURL(source.mediaStream);
+//      audio.src = window.URL.createObjectURL(source.mediaStream);
       console.log(stream);
     }
   });
+}
+
+function encryptAudio(audio) {
+	var inputBuffer = audio.inputBuffer;
+	
+	var arrayBuffer = new ArrayBuffer(1024);
+	var viewBuffer = new Float32Array(arrayBuffer);
+	
+	for (var channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
+	    var inputData = inputBuffer.getChannelData(channel);
+
+	    for (var sample = 0; sample < inputBuffer.length; sample++) {
+	    	// encrypt the data here
+	    	viewBuffer[sample] = inputData[sample];
+	    }
+	}
+	return arrayBuffer;
+}
+
+function decryptAudio(data) {
+//	var chunk = [];
+//	
+//	for (var channel = 0; channel < data.length; channel++) {
+//		chunk[channel] = [];
+//
+//	    for (var sample = 0; sample < data[channel].length; sample++) {
+//	    	chunk[channel][sample] = data[sample];
+//	    }
+//	}
+//	return chunk;
 }
 
 
