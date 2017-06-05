@@ -74,7 +74,7 @@ class Wispa {
         });
       }
     });
-    console.log("Listening to calls for " + web3.eth.accounts);
+    console.log("Listening to calls for " + web3.eth.defaultAccount);
   }
 
   static makeCall(web3, address, progress, cb) {

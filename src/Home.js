@@ -18,15 +18,17 @@ class Home extends Component {
 
     } else {
       // but for the hackathon we'll assume there is one :)
-      window.web3.shh.newIdentity((err, identity) => {
-        if (err) {
-          console.log(err);
-        } else {
-          Wispa.listenForCalls(window.web3, identity, (caller, relayAddr, room, key) => {
-            this.context.router.transitionTo('/talk/' + caller + '/' + relayAddr + '/' + room + '/' + key);
-          });
-        }
+      // window.web3.shh.newIdentity((err, identity) => {
+      //   if (err) {
+      //     console.log(err);
+      //   } else {
+
+      Wispa.listenForCalls(window.web3, 'something', (caller, relayAddr, room, key) => {
+        this.params.history.push('/talk/' + caller + '/' + relayAddr + '/' + room + '/' + key);
       });
+
+        // }
+      // });
     }
   }
   render() {

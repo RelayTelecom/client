@@ -63,7 +63,7 @@ function endCall() {
 
 function call(web3, addr, progress) {
   Wispa.makeCall(web3, addr, progress, (callee, relayAddr, room, key) => {
-    this.context.router.transitionTo('/talk/' + callee + '/' + relayAddr + '/' + room + '/' + key);
+    this.params.history.push('/talk/' + callee + '/' + relayAddr + '/' + room + '/' + key);
   });
 }
 
