@@ -56,8 +56,8 @@ function endCall() {
 }
 
 function startAudioStream(relayAddr, room, encryptionKey, audio) {
-  const socket = io(relayAddr);
-  socket.emit('joinRoom', room);
+  const socket = io('http://localhost:8642');
+  socket.emit('joinRoom', 10);
 
   getUserMedia({audio: true}, (err, stream) => {
     if (err) {
@@ -108,7 +108,7 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
 function encryptAudio(audio) {
 	var inputBuffer = audio.inputBuffer;
 	
-	var arrayBuffer = new ArrayBuffer(1024);
+	var arrayBuffer = new ArrayBuffer(4096);
 	var viewBuffer = new Float32Array(arrayBuffer);
 	
 	for (var channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
