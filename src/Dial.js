@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import Wispa from './Util/Wispa';
+import {withRouter} from 'react-router-dom';
+
 import CallProgress from './CallProgress';
 import './Dial.css';
 
@@ -27,12 +29,12 @@ class Dial extends Component {
           });
         }
         //window.web3.shh.newIdentity((err, identity) => {
-        call(window.web3, this.props.match.params.address, (p) => this.setState({progress: p}));
+        call.bind(this)(window.web3, this.props.match.params.address, (p) => this.setState({progress: p}));
         //});
       }, 1000);
     } else {
       // window.web3.shh.newIdentity((err, identity) => {
-      call(window.web3, this.props.match.params.address, (p) => this.setState({progress: p}));
+      call.bind(this)(window.web3, this.props.match.params.address, (p) => this.setState({progress: p}));
       // });
     }
 
@@ -63,8 +65,8 @@ function endCall() {
 
 function call(web3, addr, progress) {
   Wispa.makeCall(web3, addr, progress, (callee, relayAddr, room, key) => {
-    this.params.history.push('/talk/' + callee + '/' + relayAddr + '/' + room + '/' + key);
+    this.props.history.push('/talk/' + callee + '/' + relayAddr + '/' + room + '/' + key);
   });
 }
 
-export default Dial;
+export default withRouter(Dial);

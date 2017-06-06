@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import {Link} from 'react-router-dom';
+import {Link, withRouter} from 'react-router-dom';
 import Wispa from './Util/Wispa.js';
 
 import {Input, Button} from 'semantic-ui-react';
@@ -24,7 +24,7 @@ class Home extends Component {
       //   } else {
 
       Wispa.listenForCalls(window.web3, 'something', (caller, relayAddr, room, key) => {
-        this.params.history.push('/talk/' + caller + '/' + relayAddr + '/' + room + '/' + key);
+        this.props.history.push('/talk/' + caller + '/' + relayAddr + '/' + room + '/' + key);
       });
 
         // }
@@ -55,4 +55,4 @@ class Home extends Component {
   }
 }
 
-export default Home;
+export default withRouter(Home);
