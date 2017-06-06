@@ -64,7 +64,7 @@ class Wispa {
 
           // const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
           // if (foundAddr.toLowerCase() === call.address.toLowerCase()) {
-            cb(call.address.toLowerCase(), affirm.relayAddr, myChallenge, affirm.key);
+            cb(call.address.toLowerCase(), affirm.relay, myChallenge, affirm.key);
           // } else {
           //   console.log("Cheater detected? ");
           //   console.log(affirm);
@@ -77,14 +77,14 @@ class Wispa {
     console.log("Listening to calls for " + web3.eth.defaultAccount);
   }
 
-  static makeCall(web3, address, progress, cb) {
+  static makeCall(web3, address, relay, progress, cb) {
     const challenge = makeChallenge(10);
 
     const call = {
       address,
       challenge,
       pubkey: '1234', // TODO actually make a keypair..
-      self: web3.eth.defaultAccount,
+      self: web3.eth.accounts[0],
     };
 
     const socket = io("https://relay-telecom.herokuapp.com");
@@ -126,7 +126,7 @@ class Wispa {
       const affirm = {
         // signature: mySignature,
         key: '1234symmetricKey1234',
-        relay: '123.456.7.8',
+        relay,
       }
 
       // web3.shh.post({
@@ -140,10 +140,19 @@ class Wispa {
       socket.emit('relaytelecom-affirm', JSON.stringify(affirm));
       progress(4);
 
-      cb(address.toLowerCase(), affirm.relayAddr, reply.challenge, affirm.key);
+      cb(address.toLowerCase(), relay, reply.challenge, affirm.key);
     });
   //     }
   //   });
+  }
+
+  static listenForRelays(web3, foundRelay) {
+    const socket = io("https://relay-telecom.herokuapp.com");
+
+    socket.on('relaytelecom-advertise', (advertisement) => {
+      console.log(advertisement);
+      foundRelay(advertisement);
+    });
   }
 }
 

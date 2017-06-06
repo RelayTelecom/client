@@ -12,7 +12,7 @@ class App extends Component {
       <BrowserRouter>
         <Switch>
           <Route exact path="/" component={Home} />
-          <Route path="/dial/:address/" component={Dial} />
+          <Route path="/dial/:address/:relay" component={Dial} />
           <Route path="/talk/:address/:relay/:room/:encryptionKey" component={Talk} />
 
           <Route path="*" component={NotFound} />

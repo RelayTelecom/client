@@ -18,8 +18,6 @@ class Dial extends Component {
   componentDidMount() {
     if (typeof window.web3 === 'undefined' || typeof window.web3.currentProvider === 'undefined') {
       // there is no web3 impl, we should add one. Maybe.
-
-      // But let's just wait a sec in case metamask is slow.
       setTimeout(() => {
         if (typeof window.web3 === 'undefined') {
           // If still undefined..
@@ -27,16 +25,16 @@ class Dial extends Component {
             color: 'red',
             status: 'No Web3 detected. Please download at metamask.io',
           });
+        } else {
+          this.setup();
         }
-        //window.web3.shh.newIdentity((err, identity) => {
-        call.bind(this)(window.web3, this.props.match.params.address, (p) => this.setState({progress: p}));
-        //});
-      }, 1000);
+      }, 3000);
     } else {
-      // window.web3.shh.newIdentity((err, identity) => {
-      call.bind(this)(window.web3, this.props.match.params.address, (p) => this.setState({progress: p}));
-      // });
+      this.setup();
     }
+  }
+  setup() {
+    call.bind(this)(window.web3, this.props.match.params.address, this.props.match.params.relay, (p) => this.setState({progress: p}));
 
   }
   componentWillUnmount() {
@@ -63,8 +61,8 @@ function endCall() {
   })
 }
 
-function call(web3, addr, progress) {
-  Wispa.makeCall(web3, addr, progress, (callee, relayAddr, room, key) => {
+function call(web3, addr, relay, progress) {
+  Wispa.makeCall(web3, addr, relay, progress, (callee, relayAddr, room, key) => {
     this.props.history.push('/talk/' + callee + '/' + relayAddr + '/' + room + '/' + key);
   });
 }

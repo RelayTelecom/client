@@ -2,12 +2,12 @@
   text-align: center;
 }
 
-.Home .content {
+.Home > .content {
   position: absolute;
-  top: 40%;
+  top: 30%;
   left: 50%;
 
-  transform: translate(-50%, -40%);
+  transform: translate(-50%, 0%);
 }
 
 .callContainer {
@@ -24,4 +24,67 @@
 
 .callContainer .ui.input {
   margin-right: .5rem;
+}
+
+.Home .relayContainer.ui.list {
+  margin: auto;
+  margin-top: 2rem;
+
+  vertical-align: middle;
+  width: 200px;
+}
+
+
+
+
+/* @see https://codepen.io/thith/pen/WbbqXa */
+.sonar-wrapper {
+  overflow: hidden;
+
+  padding-left: 15px;
+  padding-right: 15px !important;
+}
+
+/* The circle */
+.sonar-emitter {
+  position: relative;
+  margin: 32px auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: green;
+  z-index: 0;
+}
+
+/* pseudo element - same shape and size as its parent */
+.sonar-emitter::after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  content: '';
+  background-color: green;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/*
+  Animate the pseudo element.
+  NOTE: add browser prefixes where needed.
+*/
+.sonar-emitter::after {
+  animation: sonarWave 2s linear infinite;
+}
+
+@keyframes sonarWave {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(3.5);
+    opacity: 0;
+  }
 }
