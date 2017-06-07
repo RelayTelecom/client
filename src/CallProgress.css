@@ -5,3 +5,8 @@
 .progressContainer {
   margin-bottom: 5rem;
 }
+
+.progressContainer .label {
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+}

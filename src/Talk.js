@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import {withRouter} from 'react-router-dom';
 import io from 'socket.io-client';
 import ss from 'socket.io-stream';
 import getUserMedia from 'getusermedia';
@@ -18,7 +19,7 @@ class Talk extends Component {
     }
   }
   componentDidMount() {
-    this.setState({status: 'Talking with ' + this.props.match.params.address});
+    this.setState({status: this.props.match.params.address});
     const relayAddr = this.props.match.params.relay;
     const room = this.props.match.params.room;
     const encryptionKey = this.props.match.params.encryptionKey;
@@ -53,11 +54,14 @@ function endCall() {
     status: 'Call Ended',
     color: 'red',
   });
+
+  setTimeout(() => this.props.history.push('/'), 1000);
+
 }
 
 function startAudioStream(relayAddr, room, encryptionKey, audio) {
-  const socket = io('http://localhost:8642');
-  socket.emit('joinRoom', 10);
+  const socket = io(relayAddr);
+  socket.emit('joinRoom', room);
 
   getUserMedia({audio: true}, (err, stream) => {
     if (err) {
@@ -69,23 +73,23 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
       audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(audioStream);
       const analyser = audioContext.createScriptProcessor(1024,1,1);
-      
+
       const speakerAnalyzer = audioContext.createScriptProcessor(1024,1,1);
       const bufferSource = audioContext.createBufferSource();
 
       source.connect(analyser);
-      
+
       analyser.onaudioprocess = (audio) => {
     	  var arrayBuffer = encryptAudio(audio);
     	  socket.emit('audioBuffer', arrayBuffer);
       };
-      
+
       bufferSource.connect(speakerAnalyzer);
-      
+
       speakerAnalyzer.onaudioprocess = (audio) => {
     	  decryptAudio(audio);
       };
-      
+
       socket.on('communicate', function(data){
     	  var viewBuffer = new Float32Array(data);
     	  console.log(data);
@@ -107,10 +111,10 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
 
 function encryptAudio(audio) {
 	var inputBuffer = audio.inputBuffer;
-	
+
 	var arrayBuffer = new ArrayBuffer(4096);
 	var viewBuffer = new Float32Array(arrayBuffer);
-	
+
 	for (var channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
 	    var inputData = inputBuffer.getChannelData(channel);
 
@@ -124,7 +128,7 @@ function encryptAudio(audio) {
 
 function decryptAudio(data) {
 //	var chunk = [];
-//	
+//
 //	for (var channel = 0; channel < data.length; channel++) {
 //		chunk[channel] = [];
 //
@@ -136,4 +140,4 @@ function decryptAudio(data) {
 }
 
 
-export default Talk;
+export default withRouter(Talk);
