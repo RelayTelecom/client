@@ -10,8 +10,9 @@ let audioStream;
 let audioContext;
 let socket;
 
+const bufferSize = 1024;
 const sampleFrames = 22050;
-const sampleRate = 22050;
+const sampleRate = sampleFrames * 2;
 var frameCount = 0;
 var playing = false;
 var audioBuffers = [];
@@ -87,7 +88,7 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
       audioStream = stream;
       audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(audioStream);
-      const analyser = audioContext.createScriptProcessor(1024,1,1);
+      const analyser = audioContext.createScriptProcessor(bufferSize,1,1);
       currentBuffer = audioContext.createBuffer(1, sampleFrames, sampleRate);
 
       source.connect(analyser);
@@ -116,7 +117,7 @@ function encryptAudio(audio) {
 	for (var channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
 	    var inputData = inputBuffer.getChannelData(channel);
 
-	    for (var sample = 0; sample < inputBuffer.length; sample++) {
+	    for (var sample = 0; sample < bufferSize; sample++) {
 	    	// encrypt the data here
 	    	viewBuffer[sample] = inputData[sample];
 	    }
@@ -127,11 +128,11 @@ function encryptAudio(audio) {
 function decodeAudio(audioArray) {
     var audioData = currentBuffer.getChannelData(0);
 
-    for (var sample = 0; sample < audioArray.length; sample++) {
+    for (var sample = 0; sample < bufferSize; sample++) {
     	// decrypt the data here
     	audioData[frameCount] = audioArray[sample];
     	frameCount++;
-    	if(frameCount >= sampleFrames) {
+    	if(frameCount == sampleFrames) {
     		frameCount = 0;
     		shiftAudioBuffer();
     	}
