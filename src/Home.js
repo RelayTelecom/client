@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import {Link, withRouter} from 'react-router-dom';
+import Sound from 'react-sound';
 import Wispa from './Util/Wispa.js';
 
 import {Input, Button, List, Message, Icon} from 'semantic-ui-react';
@@ -86,6 +87,7 @@ class Home extends Component {
               <Button color='green' onClick={this.callback.bind(this, true)}>Accept</Button>
               <Button color='red' onClick={this.callback.bind(this, false)}>Decline</Button>
             </Button.Group>
+            <Sound playStatus={Sound.status.PLAYING} url='/ring.mp3' onFinishedPlaying={this.callback.bind(this, false)}></Sound>
           </div>
         }
         <div className="content">
