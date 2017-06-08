@@ -8,6 +8,7 @@ import './Talk.css';
 
 let audioStream;
 let audioContext;
+let socket;
 
 const sampleFrames = 22050;
 const sampleRate = 22050;
@@ -40,7 +41,7 @@ class Talk extends Component {
     return (
       <div className="Talk">
         <div className="content">
-          <CallProgress progress={5} total={5} color={this.state.color} status={this.state.status} endCall={endCall.bind(this)}/>
+          <CallProgress progress={5} total={5} color={this.state.color} status={this.state.status} endCall={stopCall.bind(this)}/>
         </div>
         <audio ref="audio" autoPlay></audio>
       </div>
@@ -54,20 +55,27 @@ function endCall() {
     audioStream.getTracks()[0].stop();
   }
   if (audioContext) {
-    audioContext.close();
+      audioContext.close().catch(err => 'lol error handling..');
+
+  }
+  if (socket) {
+    socket.removeAllListeners("audioBuffer");
   }
 
-  this.setState({
-    status: 'Call Ended',
-    color: 'red',
-  });
-
   setTimeout(() => this.props.history.push('/'), 1000);
+}
 
+function stopCall() {
+    this.setState({
+      status: 'Call Ended',
+      color: 'red',
+    });
+
+    endCall.bind(this)();
 }
 
 function startAudioStream(relayAddr, room, encryptionKey, audio) {
-  const socket = io(relayAddr);
+  socket = io(relayAddr);
   socket.emit('joinRoom', room);
 
   getUserMedia({audio: true}, (err, stream) => {
