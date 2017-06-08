@@ -9,6 +9,13 @@ import './Talk.css';
 let audioStream;
 let audioContext;
 
+const sampleFrames = 22050;
+const sampleRate = 22050;
+var frameCount = 0;
+var playing = false;
+var audioBuffers = [];
+var currentBuffer;
+
 class Talk extends Component {
   constructor() {
     super();
@@ -73,9 +80,7 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
       audioContext = new AudioContext();
       const source = audioContext.createMediaStreamSource(audioStream);
       const analyser = audioContext.createScriptProcessor(1024,1,1);
-
-      const speakerAnalyzer = audioContext.createScriptProcessor(1024,1,1);
-      const bufferSource = audioContext.createBufferSource();
+      currentBuffer = audioContext.createBuffer(1, sampleFrames, sampleRate);
 
       source.connect(analyser);
 
@@ -84,27 +89,12 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
     	  socket.emit('audioBuffer', arrayBuffer);
       };
 
-      bufferSource.connect(speakerAnalyzer);
-
-      speakerAnalyzer.onaudioprocess = (audio) => {
-    	  decryptAudio(audio);
-      };
-
       socket.on('communicate', function(data){
     	  var viewBuffer = new Float32Array(data);
-    	  console.log(data);
-//    	  audioContext.decodeAudioData(data, function(buffer) {
-//    		  bufferSource.buffer = buffer;
-//    		  bufferSource.connect(audioContext.destination);
-//    		  bufferSource.loop = true;
-//	      });
+    	  decodeAudio(viewBuffer);
       });
 
       analyser.connect(audioContext.destination);
-
-      console.log(analyser);
-//      audio.src = window.URL.createObjectURL(source.mediaStream);
-      console.log(stream);
     }
   });
 }
@@ -126,17 +116,39 @@ function encryptAudio(audio) {
 	return arrayBuffer;
 }
 
-function decryptAudio(data) {
-//	var chunk = [];
-//
-//	for (var channel = 0; channel < data.length; channel++) {
-//		chunk[channel] = [];
-//
-//	    for (var sample = 0; sample < data[channel].length; sample++) {
-//	    	chunk[channel][sample] = data[sample];
-//	    }
-//	}
-//	return chunk;
+function decodeAudio(audioArray) {
+    var audioData = currentBuffer.getChannelData(0);
+
+    for (var sample = 0; sample < audioArray.length; sample++) {
+    	// decrypt the data here
+    	audioData[frameCount] = audioArray[sample];
+    	frameCount++;
+    	if(frameCount >= sampleFrames) {
+    		frameCount = 0;
+    		shiftAudioBuffer();
+    	}
+    }
+}
+
+function shiftAudioBuffer() {
+	var bufferToBePushed = currentBuffer;
+	audioBuffers.push(bufferToBePushed);
+	currentBuffer = audioContext.createBuffer(1, sampleFrames, sampleRate);
+	
+	if(!playing) {
+		playing = true;
+		playAudio();
+	}
+}
+
+function playAudio() {
+	var source = audioContext.createBufferSource();
+	
+	source.buffer = audioBuffers.shift();
+	source.connect(audioContext.destination);
+	
+	source.onended = playAudio;
+	source.start();
 }
 
 
