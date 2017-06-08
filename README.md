@@ -1,6 +1,8 @@
 ## Relay Telecom
 
-This project aims to provide a platform for decetralized voice communications using ethereum.
+DEMO: https://relay.netlify.com
+
+This project aims to provide a platform for decentralized voice communications using ethereum.
 
 Whisper is used to locate an address and thereafter negotiate a symmetric encryption key. The clients locate a nearby relay and, using that encryption key, send and receive each other's audio data through a high throughput relay.
 
@@ -17,17 +19,20 @@ yarn start
 
 # Running
 
-Run your ethereum node on the ropsten testnet with whisper v2. (geth <= 1.6.0). When status supports v5 we will update the whisper api.
+Call an ethereum address. If they are also on the web page it will ring and present an accept/decline dialog.
 
-Launch a relay (see https://github.com/RelayTelecom/relay)
-
-On another computer / node / status app call the other address (not quite there yet)
-
-
-# Checklist
+# Hackathon Checklist
 
 - [x] Basic interface
 - [x] Relay read-from-client buffer
-- [ ] Fork status to allow microphone
-- [ ] Whisper key negotiation
-- [ ] Client side encryption
+- [x] Client play-from-relay
+- [ ] Fork Status to allow microphone
+- [x] Fork Token to allow microphone
+- [x] ~~Whisper negotiation~~ (Whisper is iffy right now, we proxied the functionality using websockets here: https://github.com/RelayTelecom/whispersocket)
+
+# Future Work
+
+- Client side encryption. The framework is in place but the implementation is not.
+- Whisper rework when the protocol is finalized
+- Token/Status natively listen for these whisper messages and ring the phone, even when users are not on the page.
+- web3.eth.sign! Status and Token don't support this key operation to off-chain identification.
