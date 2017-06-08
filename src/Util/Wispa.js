@@ -1,13 +1,15 @@
 import ethUtils from 'ethereumjs-util';
 import io from 'socket.io-client';
 
+let sockets = [];
+
 /*
 * This class is a wrapper for what would normally be whisper operations. Because whisper is extremely unreliable in its current state,
 * and the api for it is in flux, we decided to implement a simple websocket version for this hackathon. In the future when web3.shh
 * is more production-ready, we can replace the operations in this class with true whisper code.
 */
 class Wispa {
-  static listenForCalls(web3, identity, cb) {
+  static listenForCalls(web3, accept, cb) {
     const socket = io("https://relay-telecom.herokuapp.com");
 
     //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
@@ -16,6 +18,7 @@ class Wispa {
 
       //const payload = JSON.parse(web3.toAscii(res.payload));
       console.log("Got call from " + call.self + " for " + call.address);
+
 
       if (call.address.toLowerCase() === web3.eth.accounts[0].toLowerCase() && call.challenge.length === 10) {
         // They are looking for me!
@@ -27,53 +30,61 @@ class Wispa {
         //   if (err) {
         //     console.log(err);
         //   } else {
-        const myChallenge = makeChallenge(10);
-        const replyPayload = {
-          // signature,
-          challenge: myChallenge,
-        };
+        accept(call.address.toLowerCase(), (accepted) => {
+          if (accepted) {
+            const myChallenge = makeChallenge(10);
+            const replyPayload = {
+              // signature,
+              challenge: myChallenge,
+            };
 
-        // web3.shh.post({
-        //   from: identity,
-        //   to: res.from,
-        //   topics: ['relaytelecom-reply'],
-        //   payload: JSON.stringify(replyPayload),
-        //   ttl: 30,
-        // }, () => console.log("Someone Called me... Signed " + payload.challenge));
+            // web3.shh.post({
+            //   from: identity,
+            //   to: res.from,
+            //   topics: ['relaytelecom-reply'],
+            //   payload: JSON.stringify(replyPayload),
+            //   ttl: 30,
+            // }, () => console.log("Someone Called me... Signed " + payload.challenge));
 
-        // TODO: ENCRYPT
-        const msg = JSON.stringify(replyPayload);
-        socket.emit('relaytelecom-reply', msg);
+            // TODO: ENCRYPT
+            const msg = JSON.stringify(replyPayload);
+            socket.emit('relaytelecom-reply', msg);
 
-        //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
-        //callFilter.watch((err, call) => {
-        socket.on('relaytelecom-affirm', (affirmation) => {
-          // TODO: Decrypt
-          const affirm = JSON.parse(affirmation);
+            //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
+            //callFilter.watch((err, call) => {
+            socket.once('relaytelecom-affirm', (affirmation) => {
+              // TODO: Decrypt
+              const affirm = JSON.parse(affirmation);
 
-          // if (decrypt successful) {
-          socket.removeAllListeners('relaytelecom-affirm');
-          // }
+              // if (decrypt successful) {
+              // }
 
-          // const signature = ethUtils.fromRpcSig(affirm.signature);
-          // const pubKey = ethUtils.ecrecover(
-          //   ethUtils.toBuffer(web3.sha3(myChallenge)),
-          //   signature.v,
-          //   signature.r,
-          //   signature.s);
+              // const signature = ethUtils.fromRpcSig(affirm.signature);
+              // const pubKey = ethUtils.ecrecover(
+              //   ethUtils.toBuffer(web3.sha3(myChallenge)),
+              //   signature.v,
+              //   signature.r,
+              //   signature.s);
 
-          // const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
-          // if (foundAddr.toLowerCase() === call.address.toLowerCase()) {
-            cb(call.address.toLowerCase(), affirm.relay, myChallenge, affirm.key);
-          // } else {
-          //   console.log("Cheater detected? ");
-          //   console.log(affirm);
-          // }
+              // const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
+              // if (foundAddr.toLowerCase() === call.address.toLowerCase()) {
+              cb(call.address.toLowerCase(), affirm.relay, myChallenge, affirm.key);
+              // } else {
+              //   console.log("Cheater detected? ");
+              //   console.log(affirm);
+              // }
+            });
+          } else {
+
+          }
         });
+
       }
         // });
       // }
     });
+
+    sockets.push({socket, listen: 'relaytelecom-call'});
     console.log("Listening to calls for " + web3.eth.defaultAccount);
   }
 
@@ -101,7 +112,7 @@ class Wispa {
     progress(2);
     // const replyFilter = web3.shh.filter({topics: ['relaytelecom-reply'], to: identity});
     // replyFilter.watch((err, reply) => {
-    socket.on('relaytelecom-reply', (encryptedReply) => {
+    socket.once('relaytelecom-reply', (encryptedReply) => {
       progress(3);
 
       // TODO decrypt
@@ -150,9 +161,21 @@ class Wispa {
     const socket = io("https://relay-telecom.herokuapp.com");
 
     socket.on('relaytelecom-advertise', (advertisement) => {
-      console.log(advertisement);
-      foundRelay(advertisement);
+      foundRelay('connect', advertisement);
     });
+
+    socket.on('relaytelecom-retreat', (retreat) => {
+      foundRelay('disconnect', retreat);
+    });
+
+
+    sockets.push({socket, listen: 'relaytelecom-advertise'});
+    sockets.push({socket, listen: 'relaytelecom-retreat'});
+  }
+
+  static cancelAll() {
+    sockets.map((sock) => sock.socket.removeAllListeners(sock.listen));
+    sockets = [];
   }
 }
 
