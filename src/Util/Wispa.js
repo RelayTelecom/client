@@ -91,67 +91,71 @@ class Wispa {
   static makeCall(web3, address, relay, progress, cb) {
     const challenge = makeChallenge(10);
 
-    const call = {
-      address,
-      challenge,
-      pubkey: '1234', // TODO actually make a keypair..
-      self: web3.eth.accounts[0],
-    };
 
-    const socket = io("https://relay-telecom.herokuapp.com");
+    web3.eth.getAccounts((err, accounts) => {
+      const call = {
+        address,
+        challenge,
+        pubkey: '1234', // TODO actually make a keypair..
+        self: accounts[0],
+      };
 
-    // web3.shh.post({
-    //   from: identity,
-    //   topics: ['relaytelecom-call'],
-    //   payload: JSON.stringify(call),
-    //   ttl: 300,
-    // }, () => console.log("Calling " + address + "..."));
-    socket.emit('relaytelecom-call', call);
-    console.log(call);
+      const socket = io("https://relay-telecom.herokuapp.com");
 
-    progress(2);
-    // const replyFilter = web3.shh.filter({topics: ['relaytelecom-reply'], to: identity});
-    // replyFilter.watch((err, reply) => {
-    socket.once('relaytelecom-reply', (encryptedReply) => {
-      progress(3);
+      // web3.shh.post({
+      //   from: identity,
+      //   topics: ['relaytelecom-call'],
+      //   payload: JSON.stringify(call),
+      //   ttl: 300,
+      // }, () => console.log("Calling " + address + "..."));
+      socket.emit('relaytelecom-call', call);
+      console.log(call);
 
-      // TODO decrypt
-      const reply = JSON.parse(encryptedReply);
-      // const signature = ethUtils.fromRpcSig(reply.signature);
+      progress(2);
+      // const replyFilter = web3.shh.filter({topics: ['relaytelecom-reply'], to: identity});
+      // replyFilter.watch((err, reply) => {
+      socket.once('relaytelecom-reply', (encryptedReply) => {
+        progress(3);
 
-      // const pubKey = ethUtils.ecrecover(
-      //   ethUtils.toBuffer(web3.sha3(challenge)),
-      //   signature.v,
-      //   signature.r,
-      //   signature.s);
-      //
-      // const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
+        // TODO decrypt
+        const reply = JSON.parse(encryptedReply);
+        // const signature = ethUtils.fromRpcSig(reply.signature);
 
-      // verify that they are who I wanted and that their signature is correct
-      // if (foundAddr.toLowerCase() === address.toLowerCase()) {
+        // const pubKey = ethUtils.ecrecover(
+        //   ethUtils.toBuffer(web3.sha3(challenge)),
+        //   signature.v,
+        //   signature.r,
+        //   signature.s);
+        //
+        // const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
+
+        // verify that they are who I wanted and that their signature is correct
+        // if (foundAddr.toLowerCase() === address.toLowerCase()) {
         // Yay! The right dude replied! Now I have to affirm that I'm me.
         // web3.eth.sign(web3.eth.defaultAccount, web3.sha3(reply.challenge), (err, mySignature) => {
         //   if (err) {
         //     console.log(err);
         //   } else {
-      const affirm = {
-        // signature: mySignature,
-        key: '1234symmetricKey1234',
-        relay,
-      }
+        const affirm = {
+          // signature: mySignature,
+          key: '1234symmetricKey1234',
+          relay,
+        }
 
-      // web3.shh.post({
-      //   from: identity,
-      //   to: reply.from,
-      //   topics: ['relaytelecom-affirm'],
-      //   payload: JSON.stringify(affirmPayload),
-      //   ttl: 30,
-      // }, () => console.log("Confirmed that " + address + " is real. Affirmed with " + JSON.stringify(affirmPayload)));
-      // TODO: Encrypt
-      socket.emit('relaytelecom-affirm', JSON.stringify(affirm));
-      progress(4);
+        // web3.shh.post({
+        //   from: identity,
+        //   to: reply.from,
+        //   topics: ['relaytelecom-affirm'],
+        //   payload: JSON.stringify(affirmPayload),
+        //   ttl: 30,
+        // }, () => console.log("Confirmed that " + address + " is real. Affirmed with " + JSON.stringify(affirmPayload)));
+        // TODO: Encrypt
+        socket.emit('relaytelecom-affirm', JSON.stringify(affirm));
+        progress(4);
 
-      cb(address.toLowerCase(), relay, reply.challenge, affirm.key);
+        cb(address.toLowerCase(), relay, reply.challenge, affirm.key);
+      });
+
     });
   //     }
   //   });
