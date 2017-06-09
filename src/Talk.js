@@ -144,7 +144,7 @@ function shiftAudioBuffer() {
 	var bufferToBePushed = currentBuffer;
 	audioBuffers.push(bufferToBePushed);
 	currentBuffer = audioContext.createBuffer(1, sampleFrames, sampleRate);
-	
+
 	if(!playing) {
 		playing = true;
 		playAudio();
@@ -154,14 +154,14 @@ function shiftAudioBuffer() {
 function playAudio() {
 	if (audioBuffers.length > 0) {
 		var source = audioContext.createBufferSource();
-		
+
 		source.buffer = audioBuffers.shift();
 		source.connect(audioContext.destination);
-		
+
 		source.onended = playAudio;
 		source.start();
 	} else {
-		setTimeout(playAudio(), bufferUnderflowSleepDurationMillis);
+		setTimeout(playAudio, bufferUnderflowSleepDurationMillis);
 	}
 }
 
