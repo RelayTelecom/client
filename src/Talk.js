@@ -96,6 +96,7 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
 
       analyser.onaudioprocess = (audio) => {
     	  var arrayBuffer = encryptAudio(audio);
+        console.log(arrayBuffer);
     	  socket.emit('audioBuffer', arrayBuffer);
       };
 
@@ -115,14 +116,8 @@ function encryptAudio(audio) {
 	var arrayBuffer = new ArrayBuffer(4096);
 	var viewBuffer = new Float32Array(arrayBuffer);
 
-	for (var channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
-	    var inputData = inputBuffer.getChannelData(channel);
+  inputBuffer.copyFromChannel(viewBuffer, 0);
 
-	    for (var sample = 0; sample < bufferSize; sample++) {
-	    	// encrypt the data here
-	    	viewBuffer[sample] = inputData[sample];
-	    }
-	}
 	return arrayBuffer;
 }
 
