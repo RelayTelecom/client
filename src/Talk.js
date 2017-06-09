@@ -13,6 +13,7 @@ let socket;
 const bufferSize = 1024;
 const sampleFrames = 22050;
 const sampleRate = sampleFrames * 2;
+const bufferUnderflowSleepDurationMillis = 10;
 var frameCount = 0;
 var playing = false;
 var audioBuffers = [];
@@ -151,13 +152,17 @@ function shiftAudioBuffer() {
 }
 
 function playAudio() {
-	var source = audioContext.createBufferSource();
-	
-	source.buffer = audioBuffers.shift();
-	source.connect(audioContext.destination);
-	
-	source.onended = playAudio;
-	source.start();
+	if (audioBuffers.length > 0) {
+		var source = audioContext.createBufferSource();
+		
+		source.buffer = audioBuffers.shift();
+		source.connect(audioContext.destination);
+		
+		source.onended = playAudio;
+		source.start();
+	} else {
+		setTimeout(playAudio(), bufferUnderflowSleepDurationMillis);
+	}
 }
 
 
