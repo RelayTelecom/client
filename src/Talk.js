@@ -112,17 +112,8 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
 function encryptAudio(audio) {
 	var inputBuffer = audio.inputBuffer;
 
-	var arrayBuffer = new ArrayBuffer(4096);
-	var viewBuffer = new Float32Array(arrayBuffer);
+  var inputData = inputBuffer.getChannelData(channel);
 
-	for (var channel = 0; channel < inputBuffer.numberOfChannels; channel++) {
-	    var inputData = inputBuffer.getChannelData(channel);
-
-	    for (var sample = 0; sample < bufferSize; sample++) {
-	    	// encrypt the data here
-	    	viewBuffer[sample] = inputData[sample];
-	    }
-	}
 	return arrayBuffer;
 }
 
