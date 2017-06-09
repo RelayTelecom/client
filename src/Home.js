@@ -13,6 +13,7 @@ class Home extends Component {
       address: '',
       relays: [],
       caller: null,
+      account: ' has no web3',
       callback: () => '',
     }
   }
@@ -59,6 +60,13 @@ class Home extends Component {
 
       this.setState({relays: this.state.relays});
     });
+
+    window.web3.eth.getAccounts((err, accounts) => {
+      if (err) {
+      } else {
+        this.setState({account: accounts[0]});
+      }
+    })
   }
 
   componentWillUnmount() {
@@ -98,6 +106,8 @@ class Home extends Component {
             <Input size="huge" placeholder="Address" onChange={this.handleChange.bind(this, 'address')}></Input>
             <Button as={Link} to={'/dial/'+this.state.address+'/'+this.state.relays[0]} inverted size="huge" color="green" >Call</Button>
           </div>
+
+          <p>You: {this.state.account}</p>
 
           <List className="relayContainer" inverted>
             {
