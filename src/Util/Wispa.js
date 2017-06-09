@@ -19,67 +19,67 @@ class Wispa {
       //const payload = JSON.parse(web3.toAscii(res.payload));
       console.log("Got call from " + call.self + " for " + call.address);
 
+      web3.eth.getAccounts((err, accounts) => {
+        if (call.address.toLowerCase() === accounts[0].toLowerCase() && call.challenge.length === 10) {
+          // They are looking for me!
+          // And they aren't trying to make me do horrible things!
+          // Sign their challenge
 
-      if (call.address.toLowerCase() === web3.eth.accounts[0].toLowerCase() && call.challenge.length === 10) {
-        // They are looking for me!
-        // And they aren't trying to make me do horrible things!
-        // Sign their challenge
+          // console.log("Signing challenge");
+          // web3.eth.sign(web3.eth.accounts[0], web3.sha3(call.challenge), (err, signature) => {
+          //   if (err) {
+          //     console.log(err);
+          //   } else {
+          accept(call.address.toLowerCase(), (accepted) => {
+            if (accepted) {
+              const myChallenge = makeChallenge(10);
+              const replyPayload = {
+                // signature,
+                challenge: myChallenge,
+              };
 
-        // console.log("Signing challenge");
-        // web3.eth.sign(web3.eth.accounts[0], web3.sha3(call.challenge), (err, signature) => {
-        //   if (err) {
-        //     console.log(err);
-        //   } else {
-        accept(call.address.toLowerCase(), (accepted) => {
-          if (accepted) {
-            const myChallenge = makeChallenge(10);
-            const replyPayload = {
-              // signature,
-              challenge: myChallenge,
-            };
+              // web3.shh.post({
+              //   from: identity,
+              //   to: res.from,
+              //   topics: ['relaytelecom-reply'],
+              //   payload: JSON.stringify(replyPayload),
+              //   ttl: 30,
+              // }, () => console.log("Someone Called me... Signed " + payload.challenge));
 
-            // web3.shh.post({
-            //   from: identity,
-            //   to: res.from,
-            //   topics: ['relaytelecom-reply'],
-            //   payload: JSON.stringify(replyPayload),
-            //   ttl: 30,
-            // }, () => console.log("Someone Called me... Signed " + payload.challenge));
+              // TODO: ENCRYPT
+              const msg = JSON.stringify(replyPayload);
+              socket.emit('relaytelecom-reply', msg);
 
-            // TODO: ENCRYPT
-            const msg = JSON.stringify(replyPayload);
-            socket.emit('relaytelecom-reply', msg);
+              //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
+              //callFilter.watch((err, call) => {
+              socket.once('relaytelecom-affirm', (affirmation) => {
+                // TODO: Decrypt
+                const affirm = JSON.parse(affirmation);
 
-            //const callFilter = web3.shh.filter({topics: ['relaytelecom-call']});
-            //callFilter.watch((err, call) => {
-            socket.once('relaytelecom-affirm', (affirmation) => {
-              // TODO: Decrypt
-              const affirm = JSON.parse(affirmation);
+                // if (decrypt successful) {
+                // }
 
-              // if (decrypt successful) {
-              // }
+                // const signature = ethUtils.fromRpcSig(affirm.signature);
+                // const pubKey = ethUtils.ecrecover(
+                //   ethUtils.toBuffer(web3.sha3(myChallenge)),
+                //   signature.v,
+                //   signature.r,
+                //   signature.s);
 
-              // const signature = ethUtils.fromRpcSig(affirm.signature);
-              // const pubKey = ethUtils.ecrecover(
-              //   ethUtils.toBuffer(web3.sha3(myChallenge)),
-              //   signature.v,
-              //   signature.r,
-              //   signature.s);
+                // const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
+                // if (foundAddr.toLowerCase() === call.address.toLowerCase()) {
+                cb(call.address.toLowerCase(), affirm.relay, myChallenge, affirm.key);
+                // } else {
+                //   console.log("Cheater detected? ");
+                //   console.log(affirm);
+                // }
+              });
+            } else {
 
-              // const foundAddr = '0x' + ethUtils.pubToAddress(pubKey).toString('hex');
-              // if (foundAddr.toLowerCase() === call.address.toLowerCase()) {
-              cb(call.address.toLowerCase(), affirm.relay, myChallenge, affirm.key);
-              // } else {
-              //   console.log("Cheater detected? ");
-              //   console.log(affirm);
-              // }
-            });
-          } else {
-
-          }
-        });
-
-      }
+            }
+          });
+        }
+      });
         // });
       // }
     });
