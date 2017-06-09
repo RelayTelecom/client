@@ -36,3 +36,11 @@ Call an ethereum address. If they are also on the web page it will ring and pres
 - Whisper rework when the protocol is finalized
 - Token/Status natively listen for these whisper messages and ring the phone, even when users are not on the page.
 - web3.eth.sign! Status and Token don't support this key operation to off-chain identification.
+
+# Judges
+
+You can use the Token web client for making calls; however, the audio quality is lacking. For the best audio quality, we recommend using chrome on a non-mobile device (formally known as a computer).
+
+For our Android apk see: https://github.com/RelayTelecom/token-android-client
+
+We know that the encrypting, encoding, transfering, decoding, and decrypting of audio data can be improved, but it is working!
