@@ -96,13 +96,13 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
 
       analyser.onaudioprocess = (audio) => {
     	  var arrayBuffer = encryptAudio(audio);
-        console.log(arrayBuffer);
     	  socket.emit('audioBuffer', arrayBuffer);
       };
 
       socket.on('communicate', function(data){
-    	  var viewBuffer = new Float32Array(data);
-    	  decodeAudio(viewBuffer);
+    	  var int16Array = new Uint16Array(data);
+    	  var float32Array = int16ToFloat32Array(int16Array);
+    	  decodeAudio(float32Array);
       });
 
       analyser.connect(audioContext.destination);
@@ -110,14 +110,29 @@ function startAudioStream(relayAddr, room, encryptionKey, audio) {
   });
 }
 
+function int16ToFloat32Array(int16Array) {
+	var float32Array = new Float32Array(bufferSize);
+	
+	for (var sample = 0; sample < bufferSize; sample++) {
+        var int16 = int16Array[sample];
+        var float32 = (int16 >= 0x8000) ? -(0x10000 - int16) / 0x8000 : int16 / 0x7FFF;
+        float32Array[sample] = float32;
+    }
+    return float32Array;
+}
+
 function encryptAudio(audio) {
 	var inputBuffer = audio.inputBuffer;
-
-	var arrayBuffer = new ArrayBuffer(4096);
-	var viewBuffer = new Float32Array(arrayBuffer);
-
-  inputBuffer.copyFromChannel(viewBuffer, 0);
-
+	var float32Array = inputBuffer.getChannelData(0);
+	
+	var arrayBuffer = new ArrayBuffer(bufferSize * 2);
+	var int16Array = new Uint16Array(arrayBuffer);
+	
+	for (var sample = 0; sample < bufferSize; sample++) {
+		// encrypt the data here
+		var s = Math.max(-1, Math.min(1, float32Array[sample]));
+		int16Array[sample] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
 	return arrayBuffer;
 }
 
@@ -148,6 +163,7 @@ function shiftAudioBuffer() {
 
 function playAudio() {
 	if (audioBuffers.length > 0) {
+		console.log(audioBuffers.length);
 		var source = audioContext.createBufferSource();
 
 		source.buffer = audioBuffers.shift();
