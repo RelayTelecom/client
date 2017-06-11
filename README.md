@@ -2,6 +2,8 @@
 
 DEMO: https://relay.netlify.com
 
+(Note: the demo uses http://relay-relay.herokuapp.com/ as its relay found here https://github.com/RelayTelecom/relay and may go into standby. Any http request, such as visiting the page, should force heroku to keep it deployed)
+
 This project aims to provide a platform for decentralized voice communications using ethereum.
 
 Whisper is used to locate an address and thereafter negotiate a symmetric encryption key. The clients locate a nearby relay and, using that encryption key, send and receive each other's audio data through a high throughput relay.
@@ -26,7 +28,7 @@ Call an ethereum address. If they are also on the web page it will ring and pres
 - [x] Basic interface
 - [x] Relay read-from-client buffer
 - [x] Client play-from-relay
-- [ ] Fork Status to allow microphone
+- [x] Fork Status to allow microphone
 - [x] Fork Token to allow microphone
 - [x] ~~Whisper negotiation~~ (Whisper is iffy right now, we proxied the functionality using websockets here: https://github.com/RelayTelecom/whispersocket)
 
@@ -39,8 +41,10 @@ Call an ethereum address. If they are also on the web page it will ring and pres
 
 # Judges
 
-You can use the Token web client for making calls; however, the audio quality is lacking. For the best audio quality, we recommend using chrome on a non-mobile device (formally known as a computer).
+You can use the Status web client for making calls; however, the audio quality is lacking. For the best audio quality, we recommend using chrome on a non-mobile device with metamask.
 
-For our Android apk see: https://github.com/RelayTelecom/token-android-client
+For the changes to status, see https://github.com/RelayTelecom/status-react and its dependency, https://github.com/RelayTelecom/react-native-webview-bridge
+
+For our Token Android apk see: https://github.com/RelayTelecom/token-android-client
 
 We know that the encrypting, encoding, transfering, decoding, and decrypting of audio data can be improved, but it is working!
