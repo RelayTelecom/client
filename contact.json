@@ -1,4 +1,5 @@
 {
-	"name":             "RelayTelecom",
+	"whisper-identity": "79-Relay-Telecom",
+	"name":             "# 79 Relay Telecom",
 	"dapp-url":         "https://relay.netlify.com"
 }
