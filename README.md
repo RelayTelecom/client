@@ -12,7 +12,7 @@ Relays advertise themselves over whisper.
 
 This technology will pair nicely with payment channels like Raiden as usage can be billed at the per-second level. This is out of scope of our hackathon submission but further work would include it.
 
-# Hackathon GitHub Issue: https://github.com/status-im/hackathon/issues/79
+Hackathon GitHub Issue: https://github.com/status-im/hackathon/issues/79
 
 {
 	"whisper-identity": "79-Relay-Telecom",
